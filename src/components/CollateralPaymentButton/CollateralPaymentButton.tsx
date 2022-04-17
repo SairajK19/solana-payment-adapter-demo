@@ -106,63 +106,82 @@ export const CollateralPaymentButton = () => {
     //   USDC_MINT
     // );
 
-    const seller_usdc_associated_acc = await getOrCreateAssociatedTokenAccount(
-      connection,
-      provider.wallet,
-      USDC_MINT,
-      provider.wallet.publicKey
-    ).then((data) => data.address);
+    try {
+      const seller_usdc_associated_acc =
+        await getOrCreateAssociatedTokenAccount(
+          connection,
+          provider.wallet,
+          USDC_MINT,
+          provider.wallet.publicKey
+        ).then((data) => data.address);
 
-    if (provider?.wallet.publicKey) {
-      const [vault, nonce] = await anchor.web3.PublicKey.findProgramAddress(
-        [provider?.wallet.publicKey.toBuffer()],
-        anchorProgram.programId
-      );
+      if (provider?.wallet.publicKey) {
+        const [vault, nonce] = await anchor.web3.PublicKey.findProgramAddress(
+          [provider?.wallet.publicKey.toBuffer()],
+          anchorProgram.programId
+        );
 
-      toast("Sending data to the blockchain!⌛️", {
-        position: "top-center",
-        autoClose: 5000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-        progress: undefined,
-      });
+        toast("Sending data to the blockchain!⌛️", {
+          position: "top-center",
+          autoClose: 5000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+        });
 
-      let signature = await anchorProgram.rpc.createChannel(
-        new anchor.BN(200),
-        seller.publicKey,
-        seller_usdc_associated_acc,
-        vault,
-        nonce,
-        {
+        let signature = await anchorProgram.rpc.createChannel(
+          new anchor.BN(200),
+          seller.publicKey,
+          seller_usdc_associated_acc,
+          vault,
+          nonce,
+          {
+            accounts: {
+              buyer: provider.wallet.publicKey,
+              paymentChannel: paymentChannel.publicKey,
+              systemProgram: anchor.web3.SystemProgram.programId,
+            },
+            signers: [paymentChannel],
+          }
+        );
+
+        setPaymentChannel(paymentChannel.publicKey.toString());
+        localStorage.setItem(
+          "PaymentChannel",
+          paymentChannel.publicKey.toString()
+        );
+
+        console.log(`Signature -> ${signature}`);
+
+        signature = await anchorProgram.rpc.lockSol(new anchor.BN(2), {
           accounts: {
             buyer: provider.wallet.publicKey,
+            vaultPda: vault,
             paymentChannel: paymentChannel.publicKey,
             systemProgram: anchor.web3.SystemProgram.programId,
           },
-          signers: [paymentChannel],
+        });
+
+        toast.success("SOL Locked! 🚀️", {
+          position: "top-center",
+          autoClose: 5000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+        });
+
+        console.log(`Signature -> ${signature}`);
+
+        if (signature) {
+          setPaymentPending(false);
         }
-      );
-
-      setPaymentChannel(paymentChannel.publicKey.toString());
-      localStorage.setItem(
-        "PaymentChannel",
-        paymentChannel.publicKey.toString()
-      );
-
-      console.log(`Signature -> ${signature}`);
-
-      signature = await anchorProgram.rpc.lockSol(new anchor.BN(2), {
-        accounts: {
-          buyer: provider.wallet.publicKey,
-          vaultPda: vault,
-          paymentChannel: paymentChannel.publicKey,
-          systemProgram: anchor.web3.SystemProgram.programId,
-        },
-      });
-
-      toast.success("SOL Locked! 🚀️", {
+      }
+    } catch (err) {
+      toast.error("USDC Balance 0 in your wallet!", {
         position: "top-center",
         autoClose: 5000,
         hideProgressBar: false,
@@ -171,12 +190,6 @@ export const CollateralPaymentButton = () => {
         draggable: true,
         progress: undefined,
       });
-
-      console.log(`Signature -> ${signature}`);
-
-      if (signature) {
-        setPaymentPending(false);
-      }
     }
   };
 
