@@ -20,7 +20,7 @@ const Demo = () => {
   )
 }
 ```
-Note: yarn Package is not yet published!
+Note: yarn Package is not yet published, since it's under development!
 
 ## Video Demo
 Video Link: https://www.youtube.com/watch?v=Ezq5A3NpTaw
