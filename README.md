@@ -9,7 +9,7 @@ Link to the demo: https://solana-payment-adapter.netlify.app/
 ## Usage
 ### Install using yarn
 ```shell
-yarn add solana-payment-adapter
+$ yarn add solana-payment-adapter
 ```
 ```ts
 import { CollateralPayButton } from "solana-payment-adapter";
