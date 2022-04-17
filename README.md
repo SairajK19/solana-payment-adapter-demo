@@ -1,6 +1,7 @@
 # Solana Payments Adapter
 
 A suit of Solana payment methods.
+![Demo Image](./images/demo.png)
 
 ## Demo
 Link to the demo: https://solana-payment-adapter.netlify.app/
